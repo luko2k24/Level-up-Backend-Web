@@ -3,6 +3,7 @@ package com.tuempresa.tienda.controlador;
 import com.tuempresa.tienda.modelo.Producto;
 import com.tuempresa.tienda.servicio.ProductoServicio;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize; // <<< IMPORTACIÓN NECESARIA
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -36,6 +37,7 @@ public class ProductoControlador {
 
     // POST /api/v1/admin/productos
     @PostMapping("/admin/productos")
+    @PreAuthorize("hasRole('ADMIN')") // <<< AÑADIDO: Requiere el rol ADMIN
     public ResponseEntity<Producto> crearProducto(@RequestBody Producto producto) {
         try {
             Producto nuevoProducto = productoServicio.crearProducto(producto);
@@ -47,6 +49,7 @@ public class ProductoControlador {
 
     // PUT /api/v1/admin/productos/{id}
     @PutMapping("/admin/productos/{id}")
+    @PreAuthorize("hasRole('ADMIN')") // <<< AÑADIDO: Requiere el rol ADMIN
     public ResponseEntity<Producto> actualizarProducto(@PathVariable Long id, @RequestBody Producto productoDetalles) {
         try {
             Producto actualizado = productoServicio.actualizarProducto(id, productoDetalles);
@@ -58,6 +61,7 @@ public class ProductoControlador {
 
     // DELETE /api/v1/admin/productos/{id}
     @DeleteMapping("/admin/productos/{id}")
+    @PreAuthorize("hasRole('ADMIN')") // <<< AÑADIDO: Requiere el rol ADMIN
     public ResponseEntity<Void> eliminarProducto(@PathVariable Long id) {
         try {
             productoServicio.eliminarProducto(id);

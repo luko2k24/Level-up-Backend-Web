@@ -21,6 +21,9 @@ public class ProductoServicio {
     }
 
     // --- MÉTODOS PÚBLICOS (Lectura) ---
+
+    // 🚨 FIX: Añadimos @Transactional(readOnly = true) para evitar el error de serialización
+    @Transactional(readOnly = true)
     public List<Producto> obtenerTodos() {
         return productoRepositorio.findAll();
     }

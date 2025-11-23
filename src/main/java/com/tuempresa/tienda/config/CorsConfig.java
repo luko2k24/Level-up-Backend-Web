@@ -13,9 +13,9 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                // Permite la comunicación desde el origen de tu frontend React/Vite
+                // 🚨 CAMBIO AQUÍ: Añadir el puerto 5173 de tu frontend Vite
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:3000", "http://127.0.0.1:3000")
+                        .allowedOrigins("http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5173")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);

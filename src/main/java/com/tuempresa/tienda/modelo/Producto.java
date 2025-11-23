@@ -23,6 +23,10 @@ public class Producto {
     @Column(nullable = false)
     private BigDecimal precio;
 
+    // 🚨 CORRECCIÓN CLAVE: Campo para la URL/nombre del archivo de la imagen (ej. teclado.jpg)
+    @Column(nullable = true)
+    private String urlImagen;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categoria_id", nullable = false)
     private Categoria categoria;

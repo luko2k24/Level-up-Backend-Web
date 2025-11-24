@@ -28,6 +28,20 @@ public class Usuario {
     @Column(nullable = false)
     private String password;
 
+    // 🛑 NUEVOS CAMPOS REQUERIDOS EN LA BD
+    @Column(name = "nombre_completo", nullable = false)
+    private String nombreCompleto;
+
+    @Column(nullable = false)
+    private Integer edad;
+
+    @Column(nullable = false)
+    private String region;
+
+    @Column(nullable = false)
+    private String comuna;
+    // ------------------------------------
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "usuario_roles",
             joinColumns = @JoinColumn(name = "usuario_id"),

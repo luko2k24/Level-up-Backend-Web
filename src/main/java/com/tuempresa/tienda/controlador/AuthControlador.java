@@ -23,7 +23,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+// IMPORTACIONES REQUERIDAS
 import java.util.Collections;
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -35,7 +38,7 @@ public class AuthControlador {
     private final RolRepositorio rolRepositorio;
     private final PasswordEncoder passwordEncoder;
 
-    // CONSTRUCTOR con TODAS las inyecciones
+    // CONSTRUCTOR con TODAS las inyecciones (CORRECTO)
     public AuthControlador(AuthenticationManager authenticationManager,
                            JwtUtil jwtUtil,
                            UsuarioRepositorio usuarioRepositorio,
@@ -62,15 +65,22 @@ public class AuthControlador {
         return ResponseEntity.ok(new LoginRespuesta(jwt));
     }
 
+    // MÉTODO REGISTRAR USUARIO CORREGIDO: Asigna campos nuevos y devuelve JSON
     @PostMapping("/registro")
     public ResponseEntity<?> registrarUsuario(@RequestBody RegistroPeticion registroPeticion) {
 
         if(usuarioRepositorio.existsByNombreUsuario(registroPeticion.getNombreUsuario())) {
-            return new ResponseEntity<>("Nombre de usuario ya existe.", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<Map<String, String>>(
+                    Collections.singletonMap("mensaje", "El nombre de usuario ya existe."),
+                    HttpStatus.BAD_REQUEST
+            );
         }
 
         if(usuarioRepositorio.existsByEmail(registroPeticion.getEmail())) {
-            return new ResponseEntity<>("Email ya está en uso.", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<Map<String, String>>(
+                    Collections.singletonMap("mensaje", "El correo electrónico ya está en uso."),
+                    HttpStatus.BAD_REQUEST
+            );
         }
 
         Usuario usuario = new Usuario();
@@ -78,12 +88,22 @@ public class AuthControlador {
         usuario.setEmail(registroPeticion.getEmail());
         usuario.setPassword(passwordEncoder.encode(registroPeticion.getPassword()));
 
+        // 🛑 LÍNEAS AÑADIDAS: ASIGNAR LOS 4 CAMPOS NUEVOS
+        usuario.setNombreCompleto(registroPeticion.getNombreCompleto());
+        usuario.setEdad(registroPeticion.getEdad());
+        usuario.setRegion(registroPeticion.getRegion());
+        usuario.setComuna(registroPeticion.getComuna());
+        // ----------------------------------------
+
         Rol roles = rolRepositorio.findByNombre(ERol.ROLE_CLIENTE)
                 .orElseThrow(() -> new RuntimeException("Error: Rol CLIENTE no encontrado."));
 
         usuario.setRoles(Collections.singleton(roles));
         usuarioRepositorio.save(usuario);
 
-        return new ResponseEntity<>("Usuario registrado exitosamente!", HttpStatus.CREATED);
+        return new ResponseEntity<Map<String, String>>(
+                Collections.singletonMap("mensaje", "Usuario registrado exitosamente!"),
+                HttpStatus.CREATED
+        );
     }
 }

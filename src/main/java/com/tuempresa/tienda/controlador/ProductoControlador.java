@@ -3,12 +3,12 @@ package com.tuempresa.tienda.controlador;
 import com.tuempresa.tienda.modelo.Producto;
 import com.tuempresa.tienda.servicio.ProductoServicio;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize; // <<< IMPORTACIÓN NECESARIA
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1") // Ruta base versionada
+@RequestMapping("/api/v1/productos") // 🛑 CORRECCIÓN CLAVE: La ruta base es ahora /api/v1/productos
 public class ProductoControlador {
 
     private final ProductoServicio productoServicio;
@@ -19,13 +19,13 @@ public class ProductoControlador {
 
     // --- ENDPOINTS PÚBLICOS (permitAll) ---
     // GET /api/v1/productos
-    @GetMapping("/productos")
+    @GetMapping // La ruta final es /api/v1/productos (gracias a la anotación de la clase)
     public List<Producto> listarProductos() {
         return productoServicio.obtenerTodos();
     }
 
     // GET /api/v1/productos/{id}
-    @GetMapping("/productos/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<Producto> obtenerProductoPorId(@PathVariable Long id) {
         return productoServicio.obtenerPorId(id)
                 .map(ResponseEntity::ok)
@@ -33,11 +33,10 @@ public class ProductoControlador {
     }
 
     // --- ENDPOINTS ADMINISTRATIVOS (hasRole("ADMIN")) ---
-    // Requieren token con el rol ADMIN
 
-    // POST /api/v1/admin/productos
-    @PostMapping("/admin/productos")
-    @PreAuthorize("hasRole('ADMIN')") // <<< AÑADIDO: Requiere el rol ADMIN
+    // POST /api/v1/productos/admin
+    @PostMapping("/admin") // 🛑 CORRECCIÓN: La ruta final es /api/v1/productos/admin
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Producto> crearProducto(@RequestBody Producto producto) {
         try {
             Producto nuevoProducto = productoServicio.crearProducto(producto);
@@ -47,9 +46,9 @@ public class ProductoControlador {
         }
     }
 
-    // PUT /api/v1/admin/productos/{id}
-    @PutMapping("/admin/productos/{id}")
-    @PreAuthorize("hasRole('ADMIN')") // <<< AÑADIDO: Requiere el rol ADMIN
+    // PUT /api/v1/productos/admin/{id}
+    @PutMapping("/admin/{id}") // 🛑 CORRECCIÓN: La ruta final es /api/v1/productos/admin/{id}
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Producto> actualizarProducto(@PathVariable Long id, @RequestBody Producto productoDetalles) {
         try {
             Producto actualizado = productoServicio.actualizarProducto(id, productoDetalles);
@@ -59,9 +58,9 @@ public class ProductoControlador {
         }
     }
 
-    // DELETE /api/v1/admin/productos/{id}
-    @DeleteMapping("/admin/productos/{id}")
-    @PreAuthorize("hasRole('ADMIN')") // <<< AÑADIDO: Requiere el rol ADMIN
+    // DELETE /api/v1/productos/admin/{id}
+    @DeleteMapping("/admin/{id}") // 🛑 CORRECCIÓN: La ruta final es /api/v1/productos/admin/{id}
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminarProducto(@PathVariable Long id) {
         try {
             productoServicio.eliminarProducto(id);

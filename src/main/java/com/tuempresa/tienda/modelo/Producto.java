@@ -4,11 +4,14 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import java.math.BigDecimal;
+// 🛑 Asegura que la importación de Jackson esté presente
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "productos")
 @Getter
 @Setter
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Corta la metadata de JPA/Hibernate
 public class Producto {
 
     @Id
@@ -23,11 +26,13 @@ public class Producto {
     @Column(nullable = false)
     private BigDecimal precio;
 
-    // 🚨 CORRECCIÓN CLAVE: Campo para la URL/nombre del archivo de la imagen (ej. teclado.jpg)
     @Column(nullable = true)
     private String urlImagen;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    // 🛑 CORRECCIÓN CLAVE: Cambiar de LAZY a EAGER
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "categoria_id", nullable = false)
+    // Corta el bucle si Categoria tiene una lista de Productos
+    @JsonIgnoreProperties("productos")
     private Categoria categoria;
 }

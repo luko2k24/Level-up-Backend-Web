@@ -55,8 +55,9 @@ public class SeguridadConfiguracion {
     // 4. Bean: El filtro de autenticación (JWT)
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter();
+        return new JwtAuthenticationFilter(jwtUtil, usuarioServicio);
     }
+
 
     // 5. Configura la cadena de filtros de seguridad
     @Bean

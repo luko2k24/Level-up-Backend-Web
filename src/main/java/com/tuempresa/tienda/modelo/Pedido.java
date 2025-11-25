@@ -21,7 +21,7 @@ public class Pedido {
     private LocalDateTime fechaCreacion = LocalDateTime.now();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id") // Relación con el Usuario (Cliente/Vendedor)
+    @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
     private String estado = "PENDIENTE";

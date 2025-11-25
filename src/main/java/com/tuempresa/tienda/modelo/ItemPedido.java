@@ -17,11 +17,11 @@ public class ItemPedido {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pedido_id", nullable = false)
-    private Pedido pedido; // Relación con BOLETA
+    private Pedido pedido;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "producto_id", nullable = false)
-    private Producto producto; // Relación con PRODUCTO
+    private Producto producto;
 
     @Column(nullable = false)
     private Integer cantidad;

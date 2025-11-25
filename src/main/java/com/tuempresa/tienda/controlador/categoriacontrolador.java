@@ -17,7 +17,7 @@ public class categoriacontrolador {
         this.categoriaServicio = categoriaServicio;
     }
 
-    // 📌 CUALQUIER USUARIO PUEDE VER
+    //  CUALQUIER USUARIO PUEDE VER
     @GetMapping
     public List<Categoria> listar() {
         return categoriaServicio.listar();
@@ -28,21 +28,21 @@ public class categoriacontrolador {
         return categoriaServicio.buscarPorId(id);
     }
 
-    // 📌 SOLO ADMIN PUEDE CREAR
+    // SOLO ADMIN PUEDE CREAR
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public Categoria crear(@RequestBody Categoria categoria) {
         return categoriaServicio.crear(categoria);
     }
 
-    // 📌 SOLO ADMIN PUEDE ACTUALIZAR
+    //  SOLO ADMIN PUEDE ACTUALIZAR
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public Categoria actualizar(@PathVariable Long id, @RequestBody Categoria categoria) {
         return categoriaServicio.actualizar(id, categoria);
     }
 
-    // 📌 SOLO ADMIN PUEDE ELIMINAR
+    // SOLO ADMIN PUEDE ELIMINAR
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public void eliminar(@PathVariable Long id) {

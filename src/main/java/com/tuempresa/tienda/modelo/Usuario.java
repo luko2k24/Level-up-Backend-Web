@@ -53,10 +53,6 @@ public class Usuario implements UserDetails {
     private Set<Rol> roles = new HashSet<>();
 
 
-    // ********************************************
-    // 🔥 IMPORTANTE: IMPLEMENTACIÓN DE USERDETAILS
-    // ********************************************
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()

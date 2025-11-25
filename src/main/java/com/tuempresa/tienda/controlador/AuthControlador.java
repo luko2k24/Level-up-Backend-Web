@@ -87,13 +87,11 @@ public class AuthControlador {
         usuario.setNombreUsuario(registroPeticion.getNombreUsuario());
         usuario.setEmail(registroPeticion.getEmail());
         usuario.setPassword(passwordEncoder.encode(registroPeticion.getPassword()));
-
-        // 🛑 LÍNEAS AÑADIDAS: ASIGNAR LOS 4 CAMPOS NUEVOS
         usuario.setNombreCompleto(registroPeticion.getNombreCompleto());
         usuario.setEdad(registroPeticion.getEdad());
         usuario.setRegion(registroPeticion.getRegion());
         usuario.setComuna(registroPeticion.getComuna());
-        // ----------------------------------------
+
 
         Rol roles = rolRepositorio.findByNombre(ERol.ROLE_CLIENTE)
                 .orElseThrow(() -> new RuntimeException("Error: Rol CLIENTE no encontrado."));

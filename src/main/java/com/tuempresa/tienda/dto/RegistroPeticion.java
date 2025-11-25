@@ -24,11 +24,9 @@ public class RegistroPeticion {
     @NotBlank(message = "La contraseña es obligatoria.")
     private String password;
 
-    // Campos de la empresa
     @NotBlank(message = "El nombre completo es obligatorio.")
     private String nombreCompleto;
 
-    // 🛑 CORRECCIÓN: Usamos Integer (objeto) y forzamos @NotNull y @Min
     @NotNull(message = "La edad es obligatoria.")
     @Min(value = 18, message = "Debe ser mayor de edad.")
     private Integer edad;

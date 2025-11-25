@@ -29,10 +29,9 @@ public class Producto {
     @Column(nullable = true)
     private String urlImagen;
 
-    // 🛑 CORRECCIÓN CLAVE: Cambiar de LAZY a EAGER
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "categoria_id", nullable = false)
-    // Corta el bucle si Categoria tiene una lista de Productos
+
     @JsonIgnoreProperties("productos")
     private Categoria categoria;
 }

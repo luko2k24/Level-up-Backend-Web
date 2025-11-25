@@ -35,7 +35,7 @@ public class ProductoControlador {
     // --- ENDPOINTS ADMINISTRATIVOS (hasRole("ADMIN")) ---
 
     // POST /api/v1/productos/admin
-    @PostMapping("/admin") // 🛑 CORRECCIÓN: La ruta final es /api/v1/productos/admin
+    @PostMapping("/admin")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Producto> crearProducto(@RequestBody Producto producto) {
         try {
@@ -47,7 +47,7 @@ public class ProductoControlador {
     }
 
     // PUT /api/v1/productos/admin/{id}
-    @PutMapping("/admin/{id}") // 🛑 CORRECCIÓN: La ruta final es /api/v1/productos/admin/{id}
+    @PutMapping("/admin/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Producto> actualizarProducto(@PathVariable Long id, @RequestBody Producto productoDetalles) {
         try {
@@ -59,7 +59,7 @@ public class ProductoControlador {
     }
 
     // DELETE /api/v1/productos/admin/{id}
-    @DeleteMapping("/admin/{id}") // 🛑 CORRECCIÓN: La ruta final es /api/v1/productos/admin/{id}
+    @DeleteMapping("/admin/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminarProducto(@PathVariable Long id) {
         try {

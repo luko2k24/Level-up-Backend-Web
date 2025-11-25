@@ -17,7 +17,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UsuarioServicio usuarioServicio;
 
-    // 👉 INYECCIÓN POR CONSTRUCTOR
+
     public JwtAuthenticationFilter(JwtUtil jwtUtil, UsuarioServicio usuarioServicio) {
         this.jwtUtil = jwtUtil;
         this.usuarioServicio = usuarioServicio;

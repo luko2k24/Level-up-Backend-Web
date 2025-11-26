@@ -26,6 +26,7 @@ public class PedidoServicio {
         this.usuarioRepositorio = usuarioRepositorio;
     }
 
+    // 🛑 MÉTODO CORREGIDO: Inicialización Forzada para evitar ERR_INCOMPLETE_CHUNKED_ENCODING
     @Transactional
     public Pedido crearPedido(Pedido nuevoPedido, String nombreUsuario) {
 
@@ -45,7 +46,17 @@ public class PedidoServicio {
         }
 
         // 3. Guardar la BOLETA y sus detalles
-        return pedidoRepositorio.save(nuevoPedido);
+        Pedido pedidoCreado = pedidoRepositorio.save(nuevoPedido);
+
+        // 🛑 FIX: Inicialización Forzada de Entidades LAZY antes de cerrar la transacción
+        if (pedidoCreado.getUsuario() != null) {
+            // Inicializa el proxy del Usuario:
+            pedidoCreado.getUsuario().getNombreUsuario();
+        }
+        // Inicializa la lista de ítems:
+        pedidoCreado.getItems().size();
+
+        return pedidoCreado; // <-- Ahora este objeto se serializará sin error
     }
 
     // Métodos para el VENDEDOR/ADMIN (visualizar órdenes)

@@ -1,3 +1,4 @@
+// Contenido correcto y único en CorsConfig.java
 package com.tuempresa.tienda.config;
 
 import org.springframework.context.annotation.Bean;
@@ -9,11 +10,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class CorsConfig {
 
     @Bean
-    public WebMvcConfigurer corsConfigurer() {
+    public WebMvcConfigurer corsConfigurer() { // <-- SOLO DEBE EXISTIR AQUÍ
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                // 🚨 CAMBIO AQUÍ: Añadir el puerto 5173 de tu frontend Vite
                 registry.addMapping("/**")
                         .allowedOrigins("http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5173")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")

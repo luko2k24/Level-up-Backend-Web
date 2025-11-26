@@ -18,6 +18,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+// NOTA: Se eliminaron las importaciones de CorsRegistry y WebMvcConfigurer para resolver el conflicto.
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -31,54 +33,68 @@ public class SeguridadConfiguracion {
         this.usuarioServicio = usuarioServicio;
     }
 
-    // 1. Bean: Exponer el PasswordEncoder
+    // ✅ Password encoder para hashing
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // 2. Bean CLAVE: Define el proveedor de autenticación (DaoAuthenticationProvider)
+    // ✅ Autenticación con usuarios de la BD
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(usuarioServicio); // Usa tu UsuarioServicio
-        authProvider.setPasswordEncoder(passwordEncoder());  // Usa el BCryptPasswordEncoder
+        authProvider.setUserDetailsService(usuarioServicio);
+        authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
 
-    // 3. Bean: Exponer el AuthenticationManager. Spring Boot 3 lo obtiene de la configuración general.
+    // ✅ Authentication Manager
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    // 4. Bean: El filtro de autenticación (JWT)
+    // ✅ Filtro JWT
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtUtil, usuarioServicio);
     }
 
-
-    // 5. Configura la cadena de filtros de seguridad
+    // ✅ Configuración de seguridad
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // AGREGAR EL PROVEEDOR AL CONSTRUCTOR DE AUTENTICACIÓN
-                // Esta línea asegura que el AuthenticationManager sepa dónde buscar usuarios
+        http
+                .csrf(csrf -> csrf.disable()) // ⚠️ necesario para APIs
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
 
                 .authorizeHttpRequests(auth -> auth
+                        // ✅ Login, registro, refresh token: públicos
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/productos", "/api/v1/productos/{id}").permitAll()
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+
+                        // ✅ Productos visibles sin iniciar sesión
+                        .requestMatchers(HttpMethod.GET, "/api/v1/productos", "/api/v1/productos/{id}")
+                        .permitAll()
+
+                        // ✅ Crear pedido → requiere login
+                        .requestMatchers(HttpMethod.POST, "/api/v1/pedidos")
+                        .authenticated()
+
+                        // ✅ Swagger público
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                        .permitAll()
+
+                        // ✅ Todo lo demás requiere autenticación
                         .anyRequest().authenticated()
                 );
 
+        // ✅ Agregar filtro JWT antes del de usuario
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
+
 }

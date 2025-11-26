@@ -8,8 +8,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/productos") // 🛑 CORRECCIÓN CLAVE: La ruta base es ahora /api/v1/productos
-public class ProductoControlador {
+@RequestMapping("/api/v1/productos")
+@CrossOrigin(origins = "http://localhost:5173")// 🛑 CORRECCIÓN CLAVE: La ruta base es ahora /api/v1/productos
+public class    ProductoControlador {
 
     private final ProductoServicio productoServicio;
 

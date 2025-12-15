@@ -22,7 +22,6 @@ public class JwtUtil {
     private int jwtExpirationMs;
 
     private Key key() {
-        // El secreto debe estar en Base64
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 
@@ -32,14 +31,14 @@ public class JwtUtil {
 
         String roles = userDetails.getAuthorities()
                 .stream()
-                .map(rol -> rol.getAuthority()) // mantiene ROLE_ADMIN, ROLE_CLIENTE…
+                .map(rol -> rol.getAuthority()) // ROLE_ADMIN, ROLE_CLIENTE
                 .reduce("", (a, b) -> a.isEmpty() ? b : a + "," + b);
 
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
-                .claim("rol", roles)
+                .claim("role", roles) // 🔥 CLAVE
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(new Date().getTime() + jwtExpirationMs))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(key(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -50,7 +49,6 @@ public class JwtUtil {
                     .setSigningKey(key())
                     .build()
                     .parseClaimsJws(token);
-
             return true;
         } catch (Exception e) {
             return false;

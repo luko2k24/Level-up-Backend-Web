@@ -10,13 +10,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UsuarioServicio usuarioServicio;
-
 
     public JwtAuthenticationFilter(JwtUtil jwtUtil, UsuarioServicio usuarioServicio) {
         this.jwtUtil = jwtUtil;
@@ -26,7 +26,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
 
         String header = request.getHeader("Authorization");
         String token = null;
@@ -34,17 +35,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (header != null && header.startsWith("Bearer ")) {
             token = header.substring(7);
-
             try {
                 nombreUsuario = jwtUtil.obtenerNombreUsuario(token);
             } catch (Exception e) {
-                // Token inválido, no bloquear, continuar
+                // Token inválido
             }
         }
 
-        if (nombreUsuario != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (nombreUsuario != null &&
+                SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            UserDetails userDetails = usuarioServicio.loadUserByUsername(nombreUsuario);
+            UserDetails userDetails =
+                    usuarioServicio.loadUserByUsername(nombreUsuario);
 
             if (jwtUtil.validarToken(token)) {
 
@@ -59,7 +61,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new WebAuthenticationDetailsSource().buildDetails(request)
                 );
 
-                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                SecurityContextHolder.getContext()
+                        .setAuthentication(authenticationToken);
             }
         }
 

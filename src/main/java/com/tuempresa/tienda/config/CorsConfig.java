@@ -1,4 +1,3 @@
-// Contenido correcto y único en CorsConfig.java
 package com.tuempresa.tienda.config;
 
 import org.springframework.context.annotation.Bean;
@@ -10,12 +9,16 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class CorsConfig {
 
     @Bean
-    public WebMvcConfigurer corsConfigurer() { // <-- SOLO DEBE EXISTIR AQUÍ
+    public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5173")
+                        .allowedOrigins(
+                                "http://localhost:5173",
+                                "http://localhost:3000",
+                                "http://127.0.0.1:3000"
+                        )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);

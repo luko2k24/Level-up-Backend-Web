@@ -61,24 +61,34 @@ public class SeguridadConfiguracion {
             throws Exception {
 
         http
+                // ✅ NUEVA FORMA (Spring Security 6.1+)
+                .cors(cors -> {})
+
                 .csrf(csrf -> csrf.disable())
+
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+
                 .authenticationProvider(authenticationProvider())
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
+
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/productos",
                                 "/api/v1/productos/{id}"
                         ).permitAll()
+
                         .requestMatchers("/api/v1/admin/**")
-                        .hasRole("ADMIN") // 🔥 CLAVE
+                        .hasRole("ADMIN")
+
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
+
                         .anyRequest().authenticated()
                 );
 

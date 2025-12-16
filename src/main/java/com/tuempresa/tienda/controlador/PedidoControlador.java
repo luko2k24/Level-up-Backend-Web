@@ -22,9 +22,8 @@ public class PedidoControlador {
     }
 
     // ===============================
-    // ENDPOINTS ADMIN / VENDEDOR
+    // ADMIN / VENDEDOR
     // ===============================
-
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'VENDEDOR')")
     public List<Pedido> listarPedidos() {
@@ -40,27 +39,37 @@ public class PedidoControlador {
     }
 
     // ===============================
-    // ENDPOINT PRIVADO (USUARIO LOGUEADO)
+    // PEDIDO PRIVADO
     // ===============================
-
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Pedido> crearPedido(
+    public ResponseEntity<?> crearPedido(
             @RequestBody Pedido nuevoPedido,
             Authentication authentication) {
 
-        String nombreUsuario = authentication.getName();
-        Pedido pedidoCreado = pedidoServicio.crearPedido(nuevoPedido, nombreUsuario);
-        return ResponseEntity.status(HttpStatus.CREATED).body(pedidoCreado);
+        try {
+            String nombreUsuario = authentication.getName();
+            Pedido pedidoCreado = pedidoServicio.crearPedido(nuevoPedido, nombreUsuario);
+            return ResponseEntity.status(HttpStatus.CREATED).body(pedidoCreado);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     // ===============================
-    // ✅ ENDPOINT PÚBLICO (CHECKOUT)
+    // ✅ PEDIDO PÚBLICO (CHECKOUT)
     // ===============================
-
     @PostMapping("/publico")
-    public ResponseEntity<Pedido> crearPedidoPublico(@RequestBody Pedido nuevoPedido) {
-        Pedido pedidoCreado = pedidoServicio.crearPedidoPublico(nuevoPedido);
-        return ResponseEntity.status(HttpStatus.CREATED).body(pedidoCreado);
+    public ResponseEntity<?> crearPedidoPublico(@RequestBody Pedido nuevoPedido) {
+
+        try {
+            Pedido pedidoCreado = pedidoServicio.crearPedidoPublico(nuevoPedido);
+            return ResponseEntity.status(HttpStatus.CREATED).body(pedidoCreado);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error interno al registrar el pedido");
+        }
     }
 }

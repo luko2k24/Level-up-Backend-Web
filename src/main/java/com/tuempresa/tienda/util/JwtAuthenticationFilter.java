@@ -23,23 +23,45 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.usuarioServicio = usuarioServicio;
     }
 
+    // ==================================================
+    // 🔓 ENDPOINTS QUE NO USAN JWT
+    // ==================================================
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
-            throws ServletException, IOException {
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+
+        String path = request.getRequestURI();
+
+        return
+                path.equals("/api/v1/pedidos/publico") ||
+                        path.startsWith("/api/v1/auth") ||
+                        path.startsWith("/api/v1/productos");
+    }
+
+    // ==================================================
+    // 🔒 FILTRO JWT NORMAL
+    // ==================================================
+    @Override
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
 
         String header = request.getHeader("Authorization");
-        String token = null;
-        String nombreUsuario = null;
 
-        if (header != null && header.startsWith("Bearer ")) {
-            token = header.substring(7);
-            try {
-                nombreUsuario = jwtUtil.obtenerNombreUsuario(token);
-            } catch (Exception e) {
-                // Token inválido
-            }
+        if (header == null || !header.startsWith("Bearer ")) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        String token = header.substring(7);
+        String nombreUsuario;
+
+        try {
+            nombreUsuario = jwtUtil.obtenerNombreUsuario(token);
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            return;
         }
 
         if (nombreUsuario != null &&
@@ -50,19 +72,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (jwtUtil.validarToken(token)) {
 
-                UsernamePasswordAuthenticationToken authenticationToken =
+                UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
                                 null,
                                 userDetails.getAuthorities()
                         );
 
-                authenticationToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
+                authentication.setDetails(
+                        new WebAuthenticationDetailsSource()
+                                .buildDetails(request)
                 );
 
                 SecurityContextHolder.getContext()
-                        .setAuthentication(authenticationToken);
+                        .setAuthentication(authentication);
+            } else {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                return;
             }
         }
 

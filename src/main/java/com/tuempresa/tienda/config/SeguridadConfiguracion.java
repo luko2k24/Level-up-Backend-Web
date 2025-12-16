@@ -61,9 +61,7 @@ public class SeguridadConfiguracion {
             throws Exception {
 
         http
-                // ✅ NUEVA FORMA (Spring Security 6.1+)
                 .cors(cors -> {})
-
                 .csrf(csrf -> csrf.disable())
 
                 .sessionManagement(session ->
@@ -73,22 +71,33 @@ public class SeguridadConfiguracion {
                 .authenticationProvider(authenticationProvider())
 
                 .authorizeHttpRequests(auth -> auth
+
+                        // 🔓 AUTH
                         .requestMatchers("/api/v1/auth/**").permitAll()
 
+                        // 🔓 PRODUCTOS (PÚBLICO)
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/productos",
                                 "/api/v1/productos/{id}"
                         ).permitAll()
 
+                        // ✅ 🔥 CHECKOUT PÚBLICO (ESTO ARREGLA TODO)
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/v1/pedidos/publico"
+                        ).permitAll()
+
+                        // 🔒 ADMIN
                         .requestMatchers("/api/v1/admin/**")
                         .hasRole("ADMIN")
 
+                        // 🔓 SWAGGER
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
 
+                        // 🔒 TODO LO DEMÁS
                         .anyRequest().authenticated()
                 );
 

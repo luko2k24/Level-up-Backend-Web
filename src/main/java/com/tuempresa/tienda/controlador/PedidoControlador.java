@@ -2,10 +2,12 @@ package com.tuempresa.tienda.controlador;
 
 import com.tuempresa.tienda.modelo.Pedido;
 import com.tuempresa.tienda.servicio.PedidoServicio;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -19,8 +21,9 @@ public class PedidoControlador {
         this.pedidoServicio = pedidoServicio;
     }
 
-    // --- ENDPOINTS PARA VISUALIZACIÓN (ADMIN/VENDEDOR) ---
-    // Requieren hasAnyRole('ADMIN', 'VENDEDOR')
+    // ===============================
+    // ENDPOINTS ADMIN / VENDEDOR
+    // ===============================
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'VENDEDOR')")
@@ -33,22 +36,31 @@ public class PedidoControlador {
     public ResponseEntity<Pedido> obtenerPedidoPorId(@PathVariable Long id) {
         return pedidoServicio.obtenerPorId(id)
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    // --- ENDPOINT TRANSACCIONAL (CLIENTE/USUARIO) ---
+    // ===============================
+    // ENDPOINT PRIVADO (USUARIO LOGUEADO)
+    // ===============================
 
     @PostMapping
-    @PreAuthorize("isAuthenticated()") // Requiere que el usuario esté logueado (incluye CLIENTE)
-    public ResponseEntity<Pedido> crearPedido(@RequestBody Pedido nuevoPedido, Authentication authentication) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Pedido> crearPedido(
+            @RequestBody Pedido nuevoPedido,
+            Authentication authentication) {
 
         String nombreUsuario = authentication.getName();
+        Pedido pedidoCreado = pedidoServicio.crearPedido(nuevoPedido, nombreUsuario);
+        return ResponseEntity.status(HttpStatus.CREATED).body(pedidoCreado);
+    }
 
-        try {
-            Pedido pedidoCreado = pedidoServicio.crearPedido(nuevoPedido, nombreUsuario);
-            return ResponseEntity.status(201).body(pedidoCreado);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    // ===============================
+    // ✅ ENDPOINT PÚBLICO (CHECKOUT)
+    // ===============================
+
+    @PostMapping("/publico")
+    public ResponseEntity<Pedido> crearPedidoPublico(@RequestBody Pedido nuevoPedido) {
+        Pedido pedidoCreado = pedidoServicio.crearPedidoPublico(nuevoPedido);
+        return ResponseEntity.status(HttpStatus.CREATED).body(pedidoCreado);
     }
 }

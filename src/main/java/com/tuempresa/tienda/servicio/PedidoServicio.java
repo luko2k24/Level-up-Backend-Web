@@ -1,5 +1,6 @@
 package com.tuempresa.tienda.servicio;
 
+import com.tuempresa.tienda.modelo.ItemPedido;
 import com.tuempresa.tienda.modelo.Pedido;
 import com.tuempresa.tienda.modelo.Producto;
 import com.tuempresa.tienda.modelo.Usuario;
@@ -8,6 +9,7 @@ import com.tuempresa.tienda.repositorio.ProductoRepositorio;
 import com.tuempresa.tienda.repositorio.UsuarioRepositorio;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -18,48 +20,85 @@ public class PedidoServicio {
     private final ProductoRepositorio productoRepositorio;
     private final UsuarioRepositorio usuarioRepositorio;
 
-    public PedidoServicio(PedidoRepositorio pedidoRepositorio,
-                          ProductoRepositorio productoRepositorio,
-                          UsuarioRepositorio usuarioRepositorio) {
+    public PedidoServicio(
+            PedidoRepositorio pedidoRepositorio,
+            ProductoRepositorio productoRepositorio,
+            UsuarioRepositorio usuarioRepositorio
+    ) {
         this.pedidoRepositorio = pedidoRepositorio;
         this.productoRepositorio = productoRepositorio;
         this.usuarioRepositorio = usuarioRepositorio;
     }
 
-    // 🛑 MÉTODO CORREGIDO: Inicialización Forzada para evitar ERR_INCOMPLETE_CHUNKED_ENCODING
+    // ==================================================
+    // PEDIDO PRIVADO (USUARIO LOGUEADO - ADMIN / CLIENTE)
+    // ==================================================
     @Transactional
     public Pedido crearPedido(Pedido nuevoPedido, String nombreUsuario) {
 
-        // 1. Obtener el usuario (el cliente) por el nombre de usuario del JWT
-        Usuario usuario = usuarioRepositorio.findByNombreUsuario(nombreUsuario)
-                .orElseThrow(() -> new RuntimeException("Error de sesión: Usuario no encontrado para el pedido."));
+        Usuario usuario = usuarioRepositorio
+                .findByNombreUsuario(nombreUsuario)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
         nuevoPedido.setUsuario(usuario);
+        nuevoPedido.setEstado("REGISTRADO");
 
-        // 2. Iterar y validar cada ítem del pedido (DETALLE_BOLETA)
-        for (com.tuempresa.tienda.modelo.ItemPedido item : nuevoPedido.getItems()) {
-            Producto producto = productoRepositorio.findById(item.getProducto().getId())
-                    .orElseThrow(() -> new RuntimeException("Error: Producto no encontrado con ID " + item.getProducto().getId()));
+        if (nuevoPedido.getItems() == null || nuevoPedido.getItems().isEmpty()) {
+            throw new RuntimeException("El pedido no tiene items");
+        }
 
-            // Asignar el pedido al detalle y asegurar el precio unitario correcto
+        for (ItemPedido item : nuevoPedido.getItems()) {
+
+            if (item.getProducto() == null || item.getProducto().getId() == null) {
+                throw new RuntimeException("Item sin producto válido");
+            }
+
+            Producto producto = productoRepositorio
+                    .findById(item.getProducto().getId())
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
             item.setPedido(nuevoPedido);
+            item.setProducto(producto);
             item.setPrecioUnitario(producto.getPrecio());
         }
 
-        // 3. Guardar la BOLETA y sus detalles
-        Pedido pedidoCreado = pedidoRepositorio.save(nuevoPedido);
-
-        // 🛑 FIX: Inicialización Forzada de Entidades LAZY antes de cerrar la transacción
-        if (pedidoCreado.getUsuario() != null) {
-            // Inicializa el proxy del Usuario:
-            pedidoCreado.getUsuario().getNombreUsuario();
-        }
-        // Inicializa la lista de ítems:
-        pedidoCreado.getItems().size();
-
-        return pedidoCreado; // <-- Ahora este objeto se serializará sin error
+        return pedidoRepositorio.save(nuevoPedido);
     }
 
-    // Métodos para el VENDEDOR/ADMIN (visualizar órdenes)
+    // ======================================
+    // ✅ PEDIDO PÚBLICO (CHECKOUT SIN LOGIN)
+    // ======================================
+    @Transactional
+    public Pedido crearPedidoPublico(Pedido nuevoPedido) {
+
+        nuevoPedido.setEstado("REGISTRADO");
+
+        if (nuevoPedido.getItems() == null || nuevoPedido.getItems().isEmpty()) {
+            throw new RuntimeException("El pedido no tiene items");
+        }
+
+        for (ItemPedido item : nuevoPedido.getItems()) {
+
+            if (item.getProducto() == null || item.getProducto().getId() == null) {
+                throw new RuntimeException("Item sin producto válido");
+            }
+
+            Producto producto = productoRepositorio
+                    .findById(item.getProducto().getId())
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+            // 🔑 RELACIONES JPA CORRECTAS
+            item.setPedido(nuevoPedido);
+            item.setProducto(producto);
+            item.setPrecioUnitario(producto.getPrecio());
+        }
+
+        return pedidoRepositorio.save(nuevoPedido);
+    }
+
+    // ======================================
+    // CONSULTAS ADMIN / VENDEDOR
+    // ======================================
     public List<Pedido> obtenerTodos() {
         return pedidoRepositorio.findAll();
     }

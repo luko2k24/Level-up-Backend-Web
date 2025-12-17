@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,6 +18,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.cors.CorsUtils;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -45,9 +52,8 @@ public class SeguridadConfiguracion {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration authenticationConfiguration
-    ) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
@@ -56,12 +62,37 @@ public class SeguridadConfiguracion {
         return new JwtAuthenticationFilter(jwtUtil, usuarioServicio);
     }
 
+    // ✅ CORS GLOBAL: permite Authorization + POST/PUT/DELETE/OPTIONS desde el front
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)
-            throws Exception {
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        // Ajusta si tu front corre en otra URL
+        config.setAllowedOrigins(List.of("http://localhost:5173"));
+
+        // Importante para que pase el preflight de axios con JSON
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+        // Authorization es clave para JWT
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin"));
+
+        // Opcional, pero útil si algún día devuelves headers custom
+        config.setExposedHeaders(List.of("Authorization"));
+
+        // Si usas cookies/sesión; con JWT en header puede ser false,
+        // pero no molesta si lo dejas true para dev.
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                .cors(cors -> {})
+                .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
 
                 .sessionManagement(session ->
@@ -72,6 +103,10 @@ public class SeguridadConfiguracion {
 
                 .authorizeHttpRequests(auth -> auth
 
+                        // ✅ CLAVE: permitir preflight CORS
+                        .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         // 🔓 AUTH
                         .requestMatchers("/api/v1/auth/**").permitAll()
 
@@ -81,12 +116,12 @@ public class SeguridadConfiguracion {
                                 "/api/v1/productos/{id}"
                         ).permitAll()
 
-                        // ✅ 🔥 CHECKOUT PÚBLICO (ESTO ARREGLA TODO)
+                        // 🔓 CHECKOUT PÚBLICO
                         .requestMatchers(HttpMethod.POST,
                                 "/api/v1/pedidos/publico"
                         ).permitAll()
 
-                        // 🔒 ADMIN
+                        // 🔒 ADMIN (solo /api/v1/admin/**)
                         .requestMatchers("/api/v1/admin/**")
                         .hasRole("ADMIN")
 

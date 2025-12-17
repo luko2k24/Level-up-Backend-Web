@@ -30,12 +30,10 @@ public class PedidoServicio {
         this.usuarioRepositorio = usuarioRepositorio;
     }
 
-    // ==================================================
-    // PEDIDO PRIVADO (USUARIO LOGUEADO - ADMIN / CLIENTE)
-    // ==================================================
     @Transactional
     public Pedido crearPedido(Pedido nuevoPedido, String nombreUsuario) {
 
+        // CORRECCIÓN: Usamos findByNombreUsuario
         Usuario usuario = usuarioRepositorio
                 .findByNombreUsuario(nombreUsuario)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -48,11 +46,9 @@ public class PedidoServicio {
         }
 
         for (ItemPedido item : nuevoPedido.getItems()) {
-
             if (item.getProducto() == null || item.getProducto().getId() == null) {
                 throw new RuntimeException("Item sin producto válido");
             }
-
             Producto producto = productoRepositorio
                     .findById(item.getProducto().getId())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
@@ -65,12 +61,8 @@ public class PedidoServicio {
         return pedidoRepositorio.save(nuevoPedido);
     }
 
-    // ======================================
-    // ✅ PEDIDO PÚBLICO (CHECKOUT SIN LOGIN)
-    // ======================================
     @Transactional
     public Pedido crearPedidoPublico(Pedido nuevoPedido) {
-
         nuevoPedido.setEstado("REGISTRADO");
 
         if (nuevoPedido.getItems() == null || nuevoPedido.getItems().isEmpty()) {
@@ -78,27 +70,20 @@ public class PedidoServicio {
         }
 
         for (ItemPedido item : nuevoPedido.getItems()) {
-
             if (item.getProducto() == null || item.getProducto().getId() == null) {
                 throw new RuntimeException("Item sin producto válido");
             }
-
             Producto producto = productoRepositorio
                     .findById(item.getProducto().getId())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
-            // 🔑 RELACIONES JPA CORRECTAS
             item.setPedido(nuevoPedido);
             item.setProducto(producto);
             item.setPrecioUnitario(producto.getPrecio());
         }
-
         return pedidoRepositorio.save(nuevoPedido);
     }
 
-    // ======================================
-    // CONSULTAS ADMIN / VENDEDOR
-    // ======================================
     public List<Pedido> obtenerTodos() {
         return pedidoRepositorio.findAll();
     }

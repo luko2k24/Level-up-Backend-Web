@@ -4,13 +4,13 @@ import com.tuempresa.tienda.modelo.Usuario;
 import com.tuempresa.tienda.repositorio.UsuarioRepositorio;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,31 +23,37 @@ public class UsuarioServicio implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String nombreUsuario) throws UsernameNotFoundException {
-        Usuario usuario = usuarioRepositorio.findByNombreUsuario(nombreUsuario)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + nombreUsuario));
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // CORRECCIÓN: Llamamos a findByNombreUsuario
+        Usuario usuario = usuarioRepositorio.findByNombreUsuario(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + username));
 
-        Set<GrantedAuthority> authorities = usuario.getRoles().stream()
-                .map((rol) -> new SimpleGrantedAuthority(rol.getNombre().name()))
-                .collect(Collectors.toSet());
+        List<GrantedAuthority> authorities = usuario.getRoles().stream()
+                .map(rol -> {
+                    String nombreRol = rol.getNombre().name();
+                    if (!nombreRol.startsWith("ROLE_")) {
+                        nombreRol = "ROLE_" + nombreRol;
+                    }
+                    return new SimpleGrantedAuthority(nombreRol);
+                })
+                .collect(Collectors.toList());
 
-        return new org.springframework.security.core.userdetails.User(
+        // Nota: usuario.getNombreUsuario() es el getter de tu entidad
+        return new User(
                 usuario.getNombreUsuario(),
                 usuario.getPassword(),
                 authorities
         );
     }
 
-    // Métodos para el Admin
     public List<Usuario> listarTodos() {
         return usuarioRepositorio.findAll();
     }
 
     public void eliminarUsuario(Long id) {
-        if (usuarioRepositorio.existsById(id)) {
-            usuarioRepositorio.deleteById(id);
-        } else {
-            throw new RuntimeException("Usuario no encontrado con ID: " + id);
+        if (!usuarioRepositorio.existsById(id)) {
+            throw new RuntimeException("No se puede eliminar. Usuario no encontrado con id: " + id);
         }
+        usuarioRepositorio.deleteById(id);
     }
 }

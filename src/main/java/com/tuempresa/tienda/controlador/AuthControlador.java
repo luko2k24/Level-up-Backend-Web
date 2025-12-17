@@ -1,19 +1,14 @@
 package com.tuempresa.tienda.controlador;
 
-// IMPORTACIONES DE DTOs
 import com.tuempresa.tienda.dto.LoginPeticion;
 import com.tuempresa.tienda.dto.LoginRespuesta;
 import com.tuempresa.tienda.dto.RegistroPeticion;
-
-// IMPORTACIONES DE UTILIDADES Y MODELOS
 import com.tuempresa.tienda.util.JwtUtil;
 import com.tuempresa.tienda.modelo.Usuario;
 import com.tuempresa.tienda.modelo.Rol;
 import com.tuempresa.tienda.modelo.ERol;
 import com.tuempresa.tienda.repositorio.UsuarioRepositorio;
 import com.tuempresa.tienda.repositorio.RolRepositorio;
-
-// IMPORTACIONES DE SPRING FRAMEWORK
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,10 +18,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-// IMPORTACIONES REQUERIDAS
 import java.util.Collections;
 import java.util.Map;
-
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -38,7 +31,6 @@ public class AuthControlador {
     private final RolRepositorio rolRepositorio;
     private final PasswordEncoder passwordEncoder;
 
-    // CONSTRUCTOR con TODAS las inyecciones (CORRECTO)
     public AuthControlador(AuthenticationManager authenticationManager,
                            JwtUtil jwtUtil,
                            UsuarioRepositorio usuarioRepositorio,
@@ -53,27 +45,22 @@ public class AuthControlador {
 
     @PostMapping("/login")
     public ResponseEntity<LoginRespuesta> autenticarUsuario(@RequestBody LoginPeticion loginPeticion) {
-
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginPeticion.getNombreUsuario(), loginPeticion.getPassword())
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-
         String jwt = jwtUtil.generarToken(authentication);
 
         return ResponseEntity.ok(new LoginRespuesta(jwt));
     }
 
-    // MÉTODO REGISTRAR USUARIO CORREGIDO: Asigna campos nuevos y devuelve JSON
     @PostMapping("/registro")
     public ResponseEntity<?> registrarUsuario(@RequestBody RegistroPeticion registroPeticion) {
 
-        if(usuarioRepositorio.existsByNombreUsuario(registroPeticion.getNombreUsuario())) {
-            return new ResponseEntity<Map<String, String>>(
-                    Collections.singletonMap("mensaje", "El nombre de usuario ya existe."),
-                    HttpStatus.BAD_REQUEST
-            );
+        // Validación usando el método correcto del repositorio
+        if (usuarioRepositorio.existsByNombreUsuario(registroPeticion.getNombreUsuario())) {
+            return ResponseEntity.badRequest().body("El nombre de usuario ya está en uso");
         }
 
         if(usuarioRepositorio.existsByEmail(registroPeticion.getEmail())) {
@@ -91,7 +78,6 @@ public class AuthControlador {
         usuario.setEdad(registroPeticion.getEdad());
         usuario.setRegion(registroPeticion.getRegion());
         usuario.setComuna(registroPeticion.getComuna());
-
 
         Rol roles = rolRepositorio.findByNombre(ERol.ROLE_CLIENTE)
                 .orElseThrow(() -> new RuntimeException("Error: Rol CLIENTE no encontrado."));

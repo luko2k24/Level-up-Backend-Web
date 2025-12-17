@@ -53,6 +53,8 @@ public class ProductoServicio {
             producto.setNombre(productoDetalles.getNombre());
             producto.setDescripcion(productoDetalles.getDescripcion());
             producto.setPrecio(productoDetalles.getPrecio());
+            producto.setUrlImagen(productoDetalles.getUrlImagen());
+            producto.setOferta(productoDetalles.isOferta());
 
             // Actualizar categoría (debe existir)
             if (productoDetalles.getCategoria() != null && productoDetalles.getCategoria().getId() != null) {

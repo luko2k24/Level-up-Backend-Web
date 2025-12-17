@@ -29,6 +29,9 @@ public class Producto {
     @Column(nullable = true)
     private String urlImagen;
 
+    @Column(nullable = false)
+    private boolean oferta = false;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "categoria_id", nullable = false)
 
